@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+#netlify-badge,
+.netlify-badge,
+[data-netlify-drawer] {
+    display: none !important;
+}
