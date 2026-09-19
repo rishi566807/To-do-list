@@ -24,10 +24,10 @@ router.post("/", async (req, res) => {
     }
 });
 
-// Get all todos
+// Get all todos sorted by ID
 router.get("/", async (req, res) => {
     try {
-        const allTodo = await pool.query("SELECT * FROM todo");
+        const allTodo = await pool.query("SELECT * FROM todo ORDER BY id ASC");
         res.json(allTodo.rows);
     } catch (err) {
         console.error("GET ERROR:", err.message);
@@ -42,7 +42,7 @@ router.put("/:id", async (req, res) => {
 
     try {
         const updateTodo = await pool.query(
-            "UPDATE todo SET description = COALESCE($1, description), completed = COALESCE($2, completed) WHERE id = $3 OR todo_id = $3 RETURNING *",
+            "UPDATE todo SET description = COALESCE($1, description), completed = COALESCE($2, completed) WHERE id = $3 RETURNING *",
             [description || null, completed ?? null, id]
         );
 
@@ -63,7 +63,7 @@ router.delete("/:id", async (req, res) => {
 
     try {
         const deleteTodo = await pool.query(
-            "DELETE FROM todo WHERE id = $1 OR todo_id = $1 RETURNING *", 
+            "DELETE FROM todo WHERE id = $1 RETURNING *", 
             [id]
         );
 
