@@ -13,25 +13,25 @@ router.post("/", async (req, res) => {
         }
 
         const newTodo = await pool.query(
-            'INSERT INTO "Todo" (description, completed) VALUES($1, $2) RETURNING *',
+            "INSERT INTO todo (description, completed) VALUES($1, $2) RETURNING *",
             [description.trim(), completed || false]
         );
 
         res.json(newTodo.rows[0]);
     } catch (err) {
         console.error("POST ERROR:", err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 
 // Get all todos
 router.get("/", async (req, res) => {
     try {
-        const allTodo = await pool.query('SELECT * FROM "Todo" ORDER BY id ASC');
+        const allTodo = await pool.query("SELECT * FROM todo");
         res.json(allTodo.rows);
     } catch (err) {
         console.error("GET ERROR:", err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -41,9 +41,8 @@ router.put("/:id", async (req, res) => {
     const { description, completed } = req.body;
 
     try {
-        // Changed WHERE todo_id to WHERE id
         const updateTodo = await pool.query(
-            'UPDATE "Todo" SET description = COALESCE($1, description), completed = COALESCE($2, completed) WHERE id = $3 RETURNING *',
+            "UPDATE todo SET description = COALESCE($1, description), completed = COALESCE($2, completed) WHERE id = $3 OR todo_id = $3 RETURNING *",
             [description || null, completed ?? null, id]
         );
 
@@ -54,7 +53,7 @@ router.put("/:id", async (req, res) => {
         res.json(updateTodo.rows[0]);
     } catch (err) {
         console.error("PUT ERROR:", err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -63,9 +62,8 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Changed WHERE todo_id to WHERE id
         const deleteTodo = await pool.query(
-            'DELETE FROM "Todo" WHERE id = $1 RETURNING *', 
+            "DELETE FROM todo WHERE id = $1 OR todo_id = $1 RETURNING *", 
             [id]
         );
 
@@ -76,7 +74,7 @@ router.delete("/:id", async (req, res) => {
         res.json({ message: "Todo was deleted" });
     } catch (err) {
         console.error("DELETE ERROR:", err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 
