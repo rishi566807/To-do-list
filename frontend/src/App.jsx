@@ -27,12 +27,25 @@ const App = () => {
         getTodo();
     }, []);
 
-    // Add data
+    // Add or Update data
     const onSubmitForm = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_BASE}/todos`, { description, completed: false });
-            await getTodo(); // Re-fetch from DB to sync UI immediately
+            if (editTodoId) {
+                // If editing, send PUT request to update text
+                await axios.put(`${API_BASE}/todos/${editTodoId}`, { 
+                    description, 
+                    completed: false 
+                });
+                setEditTodoId(null);
+            } else {
+                // Otherwise POST new todo
+                await axios.post(`${API_BASE}/todos`, { 
+                    description, 
+                    completed: false 
+                });
+            }
+            await getTodo(); // Re-fetch from DB to sync UI
             setDescription(""); // Clear the input field
         } catch (err) {
             console.error(err.message);
@@ -43,7 +56,7 @@ const App = () => {
     const deleteTodo = async (id) => {
         try {
             await axios.delete(`${API_BASE}/todos/${id}`);
-            getTodo(); // fetching all data again after deleting 
+            await getTodo(); // Added await here to ensure DB finishes deleting first!
         } catch (err) {
             console.error(err.message);
         }
@@ -82,8 +95,8 @@ const App = () => {
                         required
                         className="flex-1 border p-2 rounded"
                     />
-                    <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-                        Add Task
+                    <button type="submit" className={`${editTodoId ? "bg-yellow-500" : "bg-blue-600"} text-white px-4 py-2 rounded`}>
+                        {editTodoId ? "Update Task" : "Add Task"}
                     </button>
                 </div>
             </form>
@@ -95,7 +108,7 @@ const App = () => {
                     <div>
                         {todos.map((todo) => {
                             return (
-                                <div key={todo.todo_id} className="flex items-center justify-between p-2 my-2">
+                                <div key={todo.todo_id} className="flex items-center justify-between p-2 my-2 border-b">
                                     <div className="flex items-center gap-3">
                                         {/* Circle Checkbox */}
                                         <button 
